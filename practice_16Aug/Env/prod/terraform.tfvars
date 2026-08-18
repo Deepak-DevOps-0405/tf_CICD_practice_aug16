@@ -3,6 +3,10 @@ rgs = {
     rg_name  = "rg-prod"
     location = "Central India"
   }
+   rg2 = {
+    rg_name  = "rg-prod-1"
+    location = "Central India"
+  }
 }
 
 vnets = {
