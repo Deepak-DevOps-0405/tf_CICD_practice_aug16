@@ -23,6 +23,6 @@ subnets = {
     subnet_name      = "subnet1-prod"
     rg_name          = "rg-prod"
     vnet_name        = "vnet-prod"
-    address_prefixes = ["10.0.1.0/24"]
+    address_prefixes = ["10.0.2.0/24"]
   }
 }
