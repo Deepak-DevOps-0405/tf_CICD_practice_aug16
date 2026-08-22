@@ -14,7 +14,7 @@ vnets = {
     vnet_name     = "vnet-prod"
     location      = "Central India"
     rg_name       = "rg-prod"
-    address_space = ["10.0.0.01/16"]
+    address_space = ["10.0.0.0/16"]
   }
 }
 
