@@ -3,62 +3,68 @@ name: Terraform CI-CD
 on:
   push:
     branches:
-      - "**"
+      - 'feature/**'
+      - main
+
+  pull_request:
+    branches:
+      - main
 
 permissions:
-  id-token: write
   contents: read
 
 env:
-  ARM_USE_OIDC: true
-  ARM_CLIENT_ID: "de1ced98-6870-4b38-9d44-2d879b01b1b0"
-  ARM_TENANT_ID: "44ff9492-6357-4790-9759-8d5b4666c643"
-  ARM_SUBSCRIPTION_ID: "f506e9ea-7a47-4c62-82ac-24efcf83b366"
+  TF_WORKING_DIR: ./practice_16Aug/Env/prod
+
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 jobs:
 
   terraform:
-    name: Terraform
+    name: Terraform CI-CD
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: Env/prod
 
     steps:
 
-      # 1. Checkout code
-      - name: Checkout Code
+      # Checkout source code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Login to Azure
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: "de1ced98-6870-4b38-9d44-2d879b01b1b0"
-          tenant-id: "44ff9492-6357-4790-9759-8d5b4666c643"
-          subscription-id:  "f506e9ea-7a47-4c62-82ac-24efcf83b366"
-
-      # 3. Setup Terraform
+      # Install exact Terraform version
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.15.9
 
-      # 4. Terraform Init
+      # Verify Terraform version
+      - name: Terraform Version
+        run: terraform version
+
+      # Terraform Init
       - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform init
 
-      # 5. Terraform Format
-      - name: Terraform Format
-        run: terraform fmt -recursive
+      # Terraform Format Check
+      - name: Terraform Format Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive
 
-      # 6. Terraform Validate
+      # Terraform Validate
       - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform validate
 
-      # 7. Terraform Plan
+      # Terraform Plan
       - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform plan -out=tfplan
 
-      # 8. Terraform Apply
+      # Terraform Apply only on main
       - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ${{ env.TF_WORKING_DIR }}
         run: terraform apply -auto-approve tfplan
